@@ -7,6 +7,10 @@ Official PyTorch implementation of the MICAD 2022 conference paper: ["U-Net##: A
 
 <img title="U-Net## Block Diagram" src="https://github.com/firatkorkmaz/UNetSharpSharp/blob/main/images/UNetSharpSharp.png">
 
+* **Convolutional Blocks of the U-Net## Architecture**
+
+<img title="U-Net## Convolutional Blocks" src="https://github.com/firatkorkmaz/UNetSharpSharp/blob/main/images/UNetSharpSharpCB.png">
+
 In this paper, we propose a powerful novel architecture named U-Net##, which consists of multiple overlapping U-Net pathways and has the strategies of sharing feature maps between parallel neural networks, using auxiliary convolutional blocks for additional feature extractions and deep supervision, so that it performs as a boosted U-Net model for medical image segmentation.
 
 ## Citation

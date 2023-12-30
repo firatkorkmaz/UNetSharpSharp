@@ -6,15 +6,15 @@ class conv_block(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(conv_block, self).__init__()
         
-        self.conv = nn.Sequential(
-                    nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
-                    nn.BatchNorm2d(out_ch),
-                    nn.ReLU(inplace=True)
-                    )
+        self.conv_block = nn.Sequential(
+                          nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
+                          nn.BatchNorm2d(out_ch),
+                          nn.ReLU(inplace=True)
+                          )
     
     def forward(self, x):
         
-        output = self.conv(x)
+        output = self.conv_block(x)
         return output
 
 

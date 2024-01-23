@@ -320,7 +320,7 @@ class UNetSharpSharp(nn.Module):
         # Step-16: Decode-1 Blocks of the U-Nets        
         x0123_7  = torch.cat((self.B012_6_to_B0123_7(x012_6), self.B3_6_to_B0123_7(x3_6)), dim=1)
         x0123_7  = self.B0123_7_Cat_Blocks(x0123_7)
-        x4_7     = self.B4_6_to_B4_7(x4_6)
+        x4_7     = self.B4_6_to_B4_7      (x4_6)
         
         # Step-17: Addition of the Decode-1 Feature Maps
         x4_7     = ( x4_7 + self.B0123_7_to_B4_7(x0123_7) )

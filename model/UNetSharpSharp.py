@@ -8,7 +8,7 @@ class conv_block(nn.Module):
         
         self.conv_block = nn.Sequential(
                           nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
-                          nn.BatchNorm2d(out_ch),
+                          nn.InstanceNorm2d(out_ch, affine=True),
                           nn.ReLU(inplace=True)
                           )
     
@@ -25,7 +25,7 @@ class down_conv(nn.Module):
         self.down_conv = nn.Sequential(
                          nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
                          nn.MaxPool2d(kernel_size=2, stride=2),
-                         nn.BatchNorm2d(out_ch),
+                         nn.InstanceNorm2d(out_ch, affine=True),
                          nn.ReLU(inplace=True)
                          )
     
@@ -42,7 +42,7 @@ class up_conv(nn.Module):
         self.up_conv = nn.Sequential(
                        nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
                        nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
-                       nn.BatchNorm2d(out_ch),
+                       nn.InstanceNorm2d(out_ch, affine=True),
                        nn.ReLU(inplace=True)
                        )
     
@@ -58,7 +58,7 @@ class inter_conv(nn.Module):
         
         self.inter_conv = nn.Sequential(
                           nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
-                          nn.BatchNorm2d(out_ch),
+                          nn.InstanceNorm2d(out_ch, affine=True),
                           nn.ReLU(inplace=True),
                           nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True),
                           )
@@ -73,7 +73,7 @@ class UNetSharpSharp(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(UNetSharpSharp, self).__init__()
         
-        filters=[64, 128, 256, 512, 1024]
+        filters = [32, 64, 128, 256, 512]
         
         # Step-1: Encode-0 Blocks of the U-Nets
         self.Input_to_B01234_0   = conv_block(in_ch, filters[0])
@@ -92,8 +92,6 @@ class UNetSharpSharp(nn.Module):
         
         # Step-5: Auxiliary Convolution Blocks for the Encode-2 Feature Maps
         self.B012_2_to_B3_2      = inter_conv(filters[0], filters[1], 0.5)
-        
-        self.B012_2_to_B4_2      = inter_conv(filters[0], filters[2], 0.25)
         self.B3_2_to_B4_2        = inter_conv(filters[1], filters[2], 0.5)
         
         # Step-6: Encode-3 Blocks of the U-Nets
@@ -104,12 +102,7 @@ class UNetSharpSharp(nn.Module):
         
         # Step-7: Auxiliary Convolution Blocks for the Encode-3 Feature Maps
         self.B01_3_to_B2_3       = inter_conv(filters[0], filters[1], 0.5)
-        
-        self.B01_3_to_B3_3       = inter_conv(filters[0], filters[2], 0.25)
         self.B2_3_to_B3_3        = inter_conv(filters[1], filters[2], 0.5)
-        
-        self.B01_3_to_B4_3       = inter_conv(filters[0], filters[3], 0.125)
-        self.B2_3_to_B4_3        = inter_conv(filters[1], filters[3], 0.25)
         self.B3_3_to_B4_3        = inter_conv(filters[2], filters[3], 0.5)
         
         # Step-8: Encode-4 Blocks of the U-Nets
@@ -121,17 +114,8 @@ class UNetSharpSharp(nn.Module):
         
         # Step-9: Auxiliary Convolution Blocks for the Encode-4 Feature Maps
         self.B0_4_to_B1_4        = inter_conv(filters[0], filters[1], 0.5)
-        
-        self.B0_4_to_B2_4        = inter_conv(filters[0], filters[2], 0.25)
         self.B1_4_to_B2_4        = inter_conv(filters[1], filters[2], 0.5)
-        
-        self.B0_4_to_B3_4        = inter_conv(filters[0], filters[3], 0.125)
-        self.B1_4_to_B3_4        = inter_conv(filters[1], filters[3], 0.25)
         self.B2_4_to_B3_4        = inter_conv(filters[2], filters[3], 0.5)
-        
-        self.B0_4_to_B4_4        = inter_conv(filters[0], filters[4], 0.0625)
-        self.B1_4_to_B4_4        = inter_conv(filters[1], filters[4], 0.125)
-        self.B2_4_to_B4_4        = inter_conv(filters[2], filters[4], 0.25)
         self.B3_4_to_B4_4        = inter_conv(filters[3], filters[4], 0.5)
         
         # Step-10: Decode-3 Blocks of the U-Nets
@@ -144,12 +128,7 @@ class UNetSharpSharp(nn.Module):
         
         # Step-11: Auxiliary Convolution Blocks for the Decode-3 Feature Maps
         self.B01_5_to_B2_5       = inter_conv(filters[0], filters[1], 0.5)
-        
-        self.B01_5_to_B3_5       = inter_conv(filters[0], filters[2], 0.25)
         self.B2_5_to_B3_5        = inter_conv(filters[1], filters[2], 0.5)
-        
-        self.B01_5_to_B4_5       = inter_conv(filters[0], filters[3], 0.125)
-        self.B2_5_to_B4_5        = inter_conv(filters[1], filters[3], 0.25)
         self.B3_5_to_B4_5        = inter_conv(filters[2], filters[3], 0.5)
         
         # Step-12: Convolution Blocks for the Skip Connection Concatenations on the Decode-3 Blocks
@@ -167,8 +146,6 @@ class UNetSharpSharp(nn.Module):
         
         # Step-14: Auxiliary Convolution Blocks for the Decode-2 Feature Maps
         self.B012_6_to_B3_6      = inter_conv(filters[0], filters[1], 0.5)
-        
-        self.B012_6_to_B4_6      = inter_conv(filters[0], filters[2], 0.25)
         self.B3_6_to_B4_6        = inter_conv(filters[1], filters[2], 0.5)
         
         # Step-15: Convolution Blocks for the Skip Connection Concatenations on the Decode-2 Blocks
@@ -222,7 +199,7 @@ class UNetSharpSharp(nn.Module):
                 nn.init.kaiming_uniform_(m.weight, mode='fan_in', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0.)
-            elif isinstance(m, nn.BatchNorm2d):
+            elif isinstance(m, nn.InstanceNorm2d):
                 nn.init.constant_(m.weight, 1.)
                 nn.init.constant_(m.bias, 0.)
     
@@ -245,7 +222,7 @@ class UNetSharpSharp(nn.Module):
         x4_2     = self.B4_1_to_B4_2     (x4_1)
         
         # Step-5: Addition of the Encode-2 Feature Maps
-        x4_2     = ( x4_2 + self.B012_2_to_B4_2(x012_2) + self.B3_2_to_B4_2(x3_2) )
+        x4_2     = ( x4_2 + self.B3_2_to_B4_2(x3_2) )
         x3_2     = ( x3_2 + self.B012_2_to_B3_2(x012_2) )
         
         # Step-6: Encode-3 Blocks of the U-Nets
@@ -255,8 +232,8 @@ class UNetSharpSharp(nn.Module):
         x4_3     = self.B4_2_to_B4_3   (x4_2)
         
         # Step-7: Addition of the Encode-3 Feature Maps
-        x4_3     = ( x4_3  + self.B01_3_to_B4_3(x01_3) + self.B2_3_to_B4_3(x2_3) + self.B3_3_to_B4_3(x3_3) )
-        x3_3     = ( x3_3  + self.B01_3_to_B3_3(x01_3) + self.B2_3_to_B3_3(x2_3) )
+        x4_3     = ( x4_3  + self.B3_3_to_B4_3(x3_3) )
+        x3_3     = ( x3_3  + self.B2_3_to_B3_3(x2_3) )
         x2_3     = ( x2_3  + self.B01_3_to_B2_3(x01_3) )
         
         # Step-8: Encode-4 Blocks of the U-Nets
@@ -267,9 +244,9 @@ class UNetSharpSharp(nn.Module):
         x4_4     = self.B4_3_to_B4_4 (x4_3)
         
         # Step-9: Addition of the Encode-4 Feature Maps
-        x4_4     = ( x4_4 + self.B0_4_to_B4_4(x0_4) + self.B1_4_to_B4_4(x1_4) + self.B2_4_to_B4_4(x2_4) + self.B3_4_to_B4_4(x3_4) )
-        x3_4     = ( x3_4 + self.B0_4_to_B3_4(x0_4) + self.B1_4_to_B3_4(x1_4) + self.B2_4_to_B3_4(x2_4) )
-        x2_4     = ( x2_4 + self.B0_4_to_B2_4(x0_4) + self.B1_4_to_B2_4(x1_4) )
+        x4_4     = ( x4_4 + self.B3_4_to_B4_4(x3_4) )
+        x3_4     = ( x3_4 + self.B2_4_to_B3_4(x2_4) )
+        x2_4     = ( x2_4 + self.B1_4_to_B2_4(x1_4) )
         x1_4     = ( x1_4 + self.B0_4_to_B1_4(x0_4) )
         
         # Step-10: Decode-3 Blocks of the U-Nets
@@ -280,8 +257,8 @@ class UNetSharpSharp(nn.Module):
         x4_5     = self.B4_4_to_B4_5    (x4_4)
         
         # Step-11: Addition of the Decode-3 Feature Maps
-        x4_5     = ( x4_5 + self.B01_5_to_B4_5(x01_5) + self.B2_5_to_B4_5(x2_5) + self.B3_5_to_B4_5(x3_5) )
-        x3_5     = ( x3_5 + self.B01_5_to_B3_5(x01_5) + self.B2_5_to_B3_5(x2_5) )
+        x4_5     = ( x4_5 + self.B3_5_to_B4_5(x3_5) )
+        x3_5     = ( x3_5 + self.B2_5_to_B3_5(x2_5) )
         x2_5     = ( x2_5 + self.B01_5_to_B2_5(x01_5) )
         
         # Step-12: Concatenating Skip Connections to the Decode-3 Blocks
@@ -304,7 +281,7 @@ class UNetSharpSharp(nn.Module):
         x4_6     = self.B4_5_to_B4_6     (x4_5)
         
         # Step-14: Addition of the Decode-2 Feature Maps
-        x4_6     = ( x4_6 + self.B012_6_to_B4_6(x012_6) + self.B3_6_to_B4_6(x3_6) )
+        x4_6     = ( x4_6 + self.B3_6_to_B4_6(x3_6) )
         x3_6     = ( x3_6 + self.B012_6_to_B3_6(x012_6) )
         
         # Step-15: Concatenating Skip Connections to the Decode-2 Blocks
@@ -320,7 +297,7 @@ class UNetSharpSharp(nn.Module):
         # Step-16: Decode-1 Blocks of the U-Nets        
         x0123_7  = torch.cat((self.B012_6_to_B0123_7(x012_6), self.B3_6_to_B0123_7(x3_6)), dim=1)
         x0123_7  = self.B0123_7_Cat_Blocks(x0123_7)
-        x4_7     = self.B4_6_to_B4_7      (x4_6)
+        x4_7     = self.B4_6_to_B4_7(x4_6)
         
         # Step-17: Addition of the Decode-1 Feature Maps
         x4_7     = ( x4_7 + self.B0123_7_to_B4_7(x0123_7) )

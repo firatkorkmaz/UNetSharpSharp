@@ -15,7 +15,7 @@ In this paper, we propose a powerful novel architecture named U-Net##, which con
 ### Results: ###
 * Better performance.
 * ~4x faster training speed.
-* Less number of total parameters: 8.9M
+* Reduced parameters from 43M to 8.9M
 
 ## New Architecture
 

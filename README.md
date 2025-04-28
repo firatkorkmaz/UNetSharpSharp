@@ -8,14 +8,21 @@ In this paper, we propose a powerful novel architecture named U-Net##, which con
 ## UPDATE: New U-Net\#\# Architecture ##
 
 ### Changes: ###
-* Feature map additions from distant network pathways are omitted.
-* BatchNorm layers are changed to InstanceNorm layers.
+* 3D model version is added.
 * Number of filters is reduced by 50%.
+* Feature map additions are directed upward.
+* BatchNorm layers are replaced with InstanceNorm.
+* Weighted summation is implemented for deep supervision.
+* Skip connections on the ceiling network pathway are omitted.
+* Feature map additions from distant network pathways are omitted.
+* Deep supervision outputs are obtained from the ceiling network pathway.
+* Final Sigmoid functions are commented out and passed to the loss functions.
 
 ### Results: ###
 * Better performance.
 * ~4x faster training speed.
-* Reduced parameters from 43M to 8.9M
+* Reduced parameters from 43M to 8.85M
+* Parameter number of the 3D model is 26.5M
 
 ## New Architecture
 
@@ -52,6 +59,23 @@ The U-Net## model is evaluated on the TCIA-LGG Segmentation Dataset from The Can
 ### Comparison of the Dice Score Changes
 
 <img title="Dice Coefficient per Epoch" src="https://github.com/firatkorkmaz/UNetSharpSharp/blob/main/images/UNetSharpSharpDiceGraph.png">
+
+## How to Use
+
+```
+# Import available loss functions if needed
+from loss.loss import DiceLoss, BCEDiceLoss
+
+# Import model architectures
+from model.UNetSharpSharp2D import UNetSharpSharp2D  # 2D model variant
+from model.UNetSharpSharp3D import UNetSharpSharp3D  # 3D model variant
+
+# Instantiate the 2D model
+model_2d = UNetSharpSharp2D(in_ch=3, out_ch=1, deep_supervision=True)
+
+# Instantiate the 3D model
+model_3d = UNetSharpSharp3D(in_ch=3, out_ch=1, deep_supervision=True)
+```
 
 ## Citation
 
